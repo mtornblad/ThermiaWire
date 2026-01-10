@@ -1,19 +1,19 @@
-/* Wire Multi Address Write
+/* ThermiaWire Multi Address Write
  * by Spence Konde based on work by MX682X
  *
- * Demonstrates use of the new Wire library for use with the secondary address
+ * Demonstrates use of the new ThermiaWire library for use with the secondary address
  * and masked address example sketches.
  *
- * Refer to the "Slave Secondary Address" or "Wire Address Mask"
+ * Refer to the "Slave Secondary Address" or "ThermiaWire Address Mask"
  * examples for the slave sketch to use with this.
  *
  * This example takes the input from Serial. Input ends on CR or LF character
  * or at 30 characters in length.
  * The addressing depends on if you uncomment the USE_ANY_ADDRESS define.
  * Leave it commented out for the Secondary Address example:
- *   If the first element is a number, it will write the data on Wire to
+ *   If the first element is a number, it will write the data on ThermiaWire to
  *     the slave address 0x54.
- *   Otherwise it writes the data on Wire to the slave address 0x64.
+ *   Otherwise it writes the data on ThermiaWire to the slave address 0x64.
  * Uncomment it for the Address Mask slave example:
  *   If the first element is a 0-7, that will be the first digit (in hexadecimal)
  *     of the address, ex, '5test' would go to 0x54, and '2test' would go to 0x24
@@ -30,9 +30,9 @@
  * Slave Address Mask example.
  *
  * Pullup resistors must be connected between both data lines and Vcc.
- * See the Wire library README.md for more information.
+ * See the ThermiaWire library README.md for more information.
  */
-#include <Wire.h>
+#include <ThermiaWire.h>
 
 char input[32];
 int8_t len = 0;
@@ -44,7 +44,7 @@ int8_t len = 0;
 #define MySerial Serial             // The serial port connected to the to the computer.
 
 void setup() {
-  Wire.begin();                     // initialize master
+  ThermiaWire.begin();                     // initialize master
   // MySerial.swap(1);               // Remember to swap serial pins if you need to do that with your connections.
   MySerial.begin(115200);           // Use 115200 baud - this is the 2020's, and these are modern AVRs.
 }
@@ -97,11 +97,11 @@ void sendDataWire() {
   MySerial.print("Sending to: ");
   MySerial.printHex(address);
   MySerial.println();
-  Wire.beginTransmission(address);
-  Wire.write(input, len);
+  ThermiaWire.beginTransmission(address);
+  ThermiaWire.write(input, len);
 
   #if defined(DUAL_ADDRESS_ONLY)
-  Wire.write("\r\n");              // add new line and carriage return for the Serial monitor
+  ThermiaWire.write("\r\n");              // add new line and carriage return for the Serial monitor
   #endif
-  Wire.endTransmission();          // finish transmission
+  ThermiaWire.endTransmission();          // finish transmission
 }

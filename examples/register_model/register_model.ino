@@ -1,7 +1,7 @@
-/* Wire Register Model
+/* ThermiaWire Register Model
  * by Spence Konde
  *
- * Demonstrates use of the Wire library
+ * Demonstrates use of the ThermiaWire library
  * Implements an example of the "register machine" type of interface provided by most I2C
  * devices, where there are "registers" much like the ones that control on-chip peripherals
  * with the "autoincrement" functionality it is typically paired with.
@@ -32,7 +32,7 @@
  * 4 and 5 are the low and high bytes of the time delay used for the blinking... So by default it's 0x0504 ms
  * or 1284 ms.
  */
-#include <Wire.h>
+#include <ThermiaWire.h>
 volatile uint8_t DeviceRegisters[32] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
                                         0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
                                         0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
@@ -46,9 +46,9 @@ const uint8_t WriteMask[32]          = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x1F, 0xFF
 volatile uint8_t WirePointer = 0;
 
 void setup() {
-  Wire.begin(0x69); // let's start off with a nice transgressive number, always a solid start right?
-  Wire.onReceive(receiveHandler);
-  Wire.onRequest(requestHandler);
+  ThermiaWire.begin(0x69); // let's start off with a nice transgressive number, always a solid start right?
+  ThermiaWire.onReceive(receiveHandler);
+  ThermiaWire.onRequest(requestHandler);
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(230400);
 
@@ -74,13 +74,13 @@ void loop() {
  * division on an AVR unless you have to. I have put considerable effort into keeping it out of the micros() calculations.
  */
 void receiveHandler(int numbytes) {
-  Wire.getBytesRead(); // reset count of bytes read. We don't do anything with it here, but a write is going to reset it to a new value.
-  WirePointer = Wire.read() & 0x1F; // make sure they can't write off the end of the array!
+  ThermiaWire.getBytesRead(); // reset count of bytes read. We don't do anything with it here, but a write is going to reset it to a new value.
+  WirePointer = ThermiaWire.read() & 0x1F; // make sure they can't write off the end of the array!
   numbytes--; // we just read a byte, so we should decrement this.
   while (numbytes > 0) { // If numbytes was more than 1, we'll execute the below loop to write to the "registers".
 
     uint8_t unchangedbits = (DeviceRegisters[WirePointer] & ~WriteMask[WirePointer]);
-    DeviceRegisters[WirePointer] = (Wire.read() & WriteMask[WirePointer]) | unchangedbits;
+    DeviceRegisters[WirePointer] = (ThermiaWire.read() & WriteMask[WirePointer]) | unchangedbits;
     WirePointer++;          // increment the pointer.
     WirePointer &= 0x1F;    // Wrap around if it's gone over 32;
     numbytes--;             // decrement remaining bytes.
@@ -104,18 +104,18 @@ void requestHandler() {
   // We will start reading from the pointer.
   // But if there was a previous read, and the master then started a
   // second read, we want the pointer to pick up where they left off.
-  uint8_t bytes_read = Wire.getBytesRead();
+  uint8_t bytes_read = ThermiaWire.getBytesRead();
   WirePointer       += bytes_read;
   WirePointer       &= 0x1F;
   // You could also do :
-  // WirePointer = (WirePointer + Wire.getBytesRead()) & 0x1F;
+  // WirePointer = (WirePointer + ThermiaWire.getBytesRead()) & 0x1F;
   // It is no more or less efficient.
 
   // Making something to react would be done above between getting bytes read
   // and adjusting the pointer. If you were implementing a sensor of some sort
   // you might have the result register or the status register do that.
   // The slave might even check during it's loop function to see if
-  // Wire.slaveTransactionOpen() ceased to be true, then check getBytesRead() to
+  // ThermiaWire.slaveTransactionOpen() ceased to be true, then check getBytesRead() to
   // see if the key register was read __HOWEVER__
   // While this is executing, you must bear in mind that the slave is "clock stretching"
   // Hence avoiding an unduly long execution time should be one of your priorities.
@@ -126,7 +126,7 @@ void requestHandler() {
   // with all that that entails
 
   for (byte i = 0; i < 32; i++) {
-    Wire.write(DeviceRegisters[(WirePointer + i) & 0x1F]);
+    ThermiaWire.write(DeviceRegisters[(WirePointer + i) & 0x1F]);
     // "write" the whole array - but the master might only want one byte.
     // The slave doesn't know how much data the master will want yet.
     // and won't know until it's gotten all that it wants and has generated a stop condition.

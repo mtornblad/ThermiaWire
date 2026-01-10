@@ -1,9 +1,9 @@
-/* Wire Slave Address Mask
+/* ThermiaWire Slave Address Mask
  * by Spence Konde based on work by MX682X
  *
- * Demonstrates use of the new Wire library
+ * Demonstrates use of the new ThermiaWire library
  * Receives data as an I2C/TWI slave device
- * Refer to the "Wire Master Multi-Address Write" example for a
+ * Refer to the "ThermiaWire Master Multi-Address Write" example for a
  * master to use with this, though "Two Master Write" also works.
  *
  * This example prints the address which triggered the receive function
@@ -43,9 +43,9 @@
  *    SCL connected to PA3 and PF3 of master and SCL of slave.
  *
  * Pullup resistors must be connected between both data lines and Vcc.
- * See the Wire library README.md for more information.
+ * See the ThermiaWire library README.md for more information.
  */
-#include <Wire.h>
+#include <ThermiaWire.h>
 
 volatile uint8_t input[32];       // We store the data received here in the interrupt handler see receiveDataWire()
 volatile uint8_t gotMessage = 0;  // and we put the address here. It's leftshifted one place, so we can use that
@@ -60,17 +60,17 @@ void setup() {
   // 2nd argument: listen to general broadcast or "general call" (address 0x00)
   // 3rd argument: bits 7-1: second address if bit 0 is set true
   //               or bit mask of an address if bit 0 is set false
-  //               or use WIRE_ALT_ADDRESS(7-bit address)
-  //               or use WIRE_ADDRESS_MASK(7-bit address mask)
+  //               or use THERMIAWIRE_ALT_ADDRESS(7-bit address)
+  //               or use THERMIAWIRE_ADDRESS_MASK(7-bit address mask)
   // Those macros shift the address and put the appropriate LSBit in, but make the authors intent clearer.
   // 7-bit addresses and masks are between 0x01 and 0x7F. Higher values will produce a warning about implicit truncation
   // (generally happens because you shifted the value you passed to the above macros first - either pass the number manually shifted
   // or use the macro on the unshifted value.
-  Wire.begin(0x54, true, WIRE_ADDRESS_MASK(0x78));
+  ThermiaWire.begin(0x54, true, THERMIAWIRE_ADDRESS_MASK(0x78));
   // This will start TWI slave with an "address" of 0x54, but because it will ignore the 4 most significant bits,
   // only the 3 low bits of the address will be used, so it could just as well have been 0x74 or 0x04 or 0x4C. It will
   // match addresses 0bxxxx100 where x is a don't-care.
-  Wire.onReceive(receiveDataWire);
+  ThermiaWire.onReceive(receiveDataWire);
 
   // Initialize serial port - if you need to swap pins, remember to do so.
   // MySerial.swap(1);
@@ -144,7 +144,7 @@ void printMessage() {
 // function that executes whenever data is received from master
 // this function is registered as an event, see setup()
 void receiveDataWire(int16_t numBytes) {
-  uint8_t addr = Wire.getIncomingAddress();
+  uint8_t addr = ThermiaWire.getIncomingAddress();
   // get the address that triggered this function
   // the incoming address is leftshifted
   // We take advantage of this to store a flag in the low bit
@@ -153,7 +153,7 @@ void receiveDataWire(int16_t numBytes) {
   // "timing critical" for your application, and record what we got.
   for (uint8_t i = 0; i < numBytes; i++) {
     if (i < 32) {               // make sure we don't overflow input
-      input[i] = Wire.read();   // in the event of a strangely large
+      input[i] = ThermiaWire.read();   // in the event of a strangely large
     }                           // payload.
   }
   gotMessage = addr | 1; // store address, with a 1 in the low bit.

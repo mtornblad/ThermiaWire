@@ -1,4 +1,4 @@
-/* Wire Slave Write
+/* ThermiaWire Slave Write
  *
  * This sketch responds to a request for data directed at address 0x54
  * with up to 4 bytes of data - namely, the current value of millis.
@@ -10,14 +10,14 @@
  * SCL and SDA pins of a second device running the Master Read example.
  *
  * Pullup resistors must be connected between both data lines and Vcc.
- * See the Wire library README.md for more information.
+ * See the ThermiaWire library README.md for more information.
  */
 
-#include <Wire.h>
+#include <ThermiaWire.h>
 
 void setup() {
-  Wire.begin(0x54);                 // initialize slave
-  Wire.onRequest(transmitDataWire); // register transmitDataWire as the handler
+  ThermiaWire.begin(0x54);                 // initialize slave
+  ThermiaWire.onRequest(transmitDataWire); // register transmitDataWire as the handler
 }
 
 void loop() {
@@ -30,8 +30,8 @@ void transmitDataWire() {
   #else
   uint32_t ms = 123456789UL; // placeholder - there's no millis to send because it's disabled.
   #endif
-  Wire.write((uint8_t) ms);
-  Wire.write((uint8_t)(ms >> 8));
-  Wire.write((uint8_t)(ms >> 16));
-  Wire.write((uint8_t)(ms >> 24));
+  ThermiaWire.write((uint8_t) ms);
+  ThermiaWire.write((uint8_t)(ms >> 8));
+  ThermiaWire.write((uint8_t)(ms >> 16));
+  ThermiaWire.write((uint8_t)(ms >> 24));
 }

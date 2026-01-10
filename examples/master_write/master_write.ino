@@ -1,22 +1,22 @@
-/* Wire Master Write
+/* ThermiaWire Master Write
  * by MX682X
  *
- * Demonstrates use of the New Wire library
+ * Demonstrates use of the New ThermiaWire library
  * Writes data to an I2C/TWI slave device
- * Refer to the "Wire Slave Read" example for use with this
+ * Refer to the "ThermiaWire Slave Read" example for use with this
  *
  * Enter any data using serial monitor or other console followed by either or
  * both of the line ending characters, and it will be sent to the slave, which
  * should print it out on it's serial port.
  *
  * To use this, you need to connect the SCL and SDA pins of this device to the
- * SCL and SDA pins of a second device running the Wire Slave Read example.
+ * SCL and SDA pins of a second device running the ThermiaWire Slave Read example.
  *
  * Pullup resistors must be connected between both data lines and Vcc.
- * See the Wire library README.md for more information.
+ * See the ThermiaWire library README.md for more information.
  */
 
-#include <Wire.h>
+#include <ThermiaWire.h>
 
 char input[32];
 int8_t len = 0;
@@ -24,7 +24,7 @@ int8_t len = 0;
 #define MySerial Serial               // The serial port connected to the to the computer.
 
 void setup() {
-  Wire.begin();                       // initialize master
+  ThermiaWire.begin();                       // initialize master
   // MySerial.swap(1);                 // Remember to swap serial pins if you need to do that with your connections.
   MySerial.begin(115200);             // Use 115200 baud - this is the 2020's, and these are modern AVRs.
 }
@@ -55,10 +55,10 @@ void readFromSerial() {
 }
 
 void sendDataWire() {
-  Wire.beginTransmission(0x54);     // prepare transmission to slave with address 0x54
+  ThermiaWire.beginTransmission(0x54);     // prepare transmission to slave with address 0x54
   for (uint8_t i = 0; i < len; i++) {
-    Wire.write(input[i]);           // Write the received data to the bus buffer
+    ThermiaWire.write(input[i]);           // Write the received data to the bus buffer
   }
-  Wire.write("\r\n");               // add new line and carriage return for the Serial monitor
-  Wire.endTransmission();           // finish transmission
+  ThermiaWire.write("\r\n");               // add new line and carriage return for the Serial monitor
+  ThermiaWire.endTransmission();           // finish transmission
 }

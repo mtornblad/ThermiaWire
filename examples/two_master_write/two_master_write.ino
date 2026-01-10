@@ -1,11 +1,11 @@
-/* Wire Two Masters Write
+/* ThermiaWire Two Masters Write
  * by MX682X
  *
- * Demonstrates use of the new Wire library using a device with two
+ * Demonstrates use of the new ThermiaWire library using a device with two
  * TWI ports to simulate two master devices without needing a third AVR.
  * Writes data to an I2C/TWI slave device.
  *
- * Refer to the "Wire Slave Secondary Address" or "Wire Slave Address Mask"
+ * Refer to the "ThermiaWire Slave Secondary Address" or "ThermiaWire Slave Address Mask"
  * examples for the slave sketch to use with this.
  *
  * This example takes the input from Serial. Input ends on CR or LF character
@@ -17,7 +17,7 @@
  *
  * Of course, in real life you wouldn't bother using both TWI interfaces in
  * master mode like that. However, while I2C is fairly good at mixed logic levels
- * (see the Wire readme), this is sometimes an issue; on an AVR DB or DD with MVIO,
+ * (see the ThermiaWire readme), this is sometimes an issue; on an AVR DB or DD with MVIO,
  * one interface could talk to the fragile 1.8v ultra-modern sensor, and the other to
  * a 5v device that doesn't recognize 1.8v as a HIGH. Or one bus could run at FM+ speeds
  * and the other at standard speed, each with devices appropriate for that speed.
@@ -35,21 +35,21 @@
  *    SCL connected to PA3 and PF3 of master and PA3 of slave.
  *
  * Pullup resistors must be connected between both data lines and Vcc.
- * See the Wire library README.md for more information.
+ * See the ThermiaWire library README.md for more information.
  */
-#include <Wire.h>
+#include <ThermiaWire.h>
 
 char input[32];
 int8_t len = 0;
 
 #define MySerial Serial             // The serial port connected to the to the computer.
 #if !defined(TWI1) || !defined(TWI_USING_WIRE1)
-  #error "This sketch requires that the board have a second TWI interface, and be set to enable Wire1 from the tools submenu"
+  #error "This sketch requires that the board have a second TWI interface, and be set to enable ThermiaWire1 from the tools submenu"
 #endif
 
 void setup() {
-  Wire.begin();                       // initialize master
-  Wire1.begin();                      // initialize the other master
+  ThermiaWire.begin();                       // initialize master
+  ThermiaWire1.begin();                      // initialize the other master
   MySerial.swap(1);                   // Remember to swap serial pins if you need to do that with your connections.
   MySerial.begin(115200);             // Use 115200 baud - this is the 2020's, and these are modern AVRs.
 }
@@ -82,22 +82,22 @@ void readFromSerial() {
 void sendDataWire() {
   uint8_t firstElement = input[0];
   if (firstElement >= '0' && firstElement <= '9') {   // check if the first element is a number
-    Wire.beginTransmission(0x54);    // prepare transmission to slave with address 0x54
+    ThermiaWire.beginTransmission(0x54);    // prepare transmission to slave with address 0x54
 
     for (uint8_t i = 0; i < len; i++) {
-      Wire.write(input[i]);          // Write the received data to the bus buffer
+      ThermiaWire.write(input[i]);          // Write the received data to the bus buffer
     }
 
-    Wire.write("\r\n");              // add new line and carriage return for the Serial monitor
-    Wire.endTransmission();          // finish transmission
+    ThermiaWire.write("\r\n");              // add new line and carriage return for the Serial monitor
+    ThermiaWire.endTransmission();          // finish transmission
   } else {
-    Wire1.beginTransmission(0x64);   // prepare transmission to slave with address 0x64
+    ThermiaWire1.beginTransmission(0x64);   // prepare transmission to slave with address 0x64
 
     for (uint8_t i = 0; i < len; i++) {
-      Wire1.write(input[i]);          // Write the received data to the bus buffer
+      ThermiaWire1.write(input[i]);          // Write the received data to the bus buffer
     }
 
-    Wire1.write("\r\n");              // add new line and carriage return for the Serial monitor
-    Wire1.endTransmission();          // finish transmission
+    ThermiaWire1.write("\r\n");              // add new line and carriage return for the Serial monitor
+    ThermiaWire1.endTransmission();          // finish transmission
   }
 }

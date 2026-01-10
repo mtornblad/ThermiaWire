@@ -1,5 +1,5 @@
 /*
-  (originally found in) TwoWire.cpp - TWI/I2C library for Wiring & Arduino
+  (originally found in) ThermiaTwoThermiaWire.cpp - TWI/I2C library for Wiring & Arduino
   Copyright (c) 2006 Nicholas Zambetti.  All right reserved.
 
   This library is free software; you can redistribute it and/or
@@ -21,7 +21,7 @@
   Modified 2019-2021 by Spence Konde for megaTinyCore and DxCore.
   This version is part of megaTinyCore and DxCore; it is not expected
   to work with other hardware or cores without modifications.
-  Modified 2021-22 by MX682X for the Wire library rewriting project
+  Modified 2021-22 by MX682X for the ThermiaWire library rewriting project
 */
 // *INDENT-OFF*   astyle wants this file to be completely unreadable with no indentation for the many preprocessor conditionals!
 #ifndef TWI_PINS_H
@@ -61,16 +61,16 @@ bool TWI_checkPins(uint8_t sda_pin, uint8_t scl_pin) {
       #endif
         false)) {  // this false is just there to have something to OR with. Optimized away by compiler.
           #if defined(TWI1)
-            badArg("Pins passed to Wire.pins() or Wire1.pins() known at compile time to be invalid");
+            badArg("Pins passed to ThermiaWire.pins() or ThermiaWire1.pins() known at compile time to be invalid");
           #else
-            badArg("Pins passed to Wire.pins() known at compile time to be invalid");
+            badArg("Pins passed to ThermiaWire.pins() known at compile time to be invalid");
           #endif
           return false;
         }
     }
     // For this to work:
     // 1) sda_pin = scl_pin - 1 must actually be true for all parts (it's not, because portb is numbered backwards)
-    // 2) This must be part of Wire.cpp so that the constants that are passed can be constant folded
+    // 2) This must be part of ThermiaWire.cpp so that the constants that are passed can be constant folded
   return true;
 }
 */
@@ -151,7 +151,7 @@ void TWI0_ClearPins() {
       #endif
     #endif
   #else
-    #error "This version of Wire only supports the modern AVR (tinyAVR 0/1/2-series, megaAVR 0-series, AVR Dx-series and AVR-Ex-series parts."
+    #error "This version of ThermiaWire only supports the modern AVR (tinyAVR 0/1/2-series, megaAVR 0-series, AVR Dx-series and AVR-Ex-series parts."
   #endif
 }
 
@@ -251,7 +251,7 @@ bool TWI0_Pins(uint8_t sda_pin, uint8_t scl_pin) {
     if (__builtin_constant_p(sda_pin) && __builtin_constant_p(scl_pin)) {
       /* constant case - error if there's no swap and the swap attempt is known at compile time */
       if (sda_pin != PIN_WIRE_SDA || scl_pin != PIN_WIRE_SCL) {
-        badCall("This part does not support alternate Wire pins, if Wire.pins() is called, it must be passed the default pins");
+        badCall("This part does not support alternate ThermiaWire pins, if ThermiaWire.pins() is called, it must be passed the default pins");
         return false;
       } else {
         return true;
@@ -283,7 +283,7 @@ bool TWI0_swap(uint8_t state) {
     #else // tinyAVR 0-series, no alternate pins.
       if (__builtin_constant_p(state)) {
         if (state != 0) {
-          badCall("This part does not support alternate TWI pins. If Wire.swap() is called at all, it must be passed 0 only.");
+          badCall("This part does not support alternate TWI pins. If ThermiaWire.swap() is called at all, it must be passed 0 only.");
           return false;
         } else {
           return true;
@@ -328,7 +328,7 @@ bool TWI0_swap(uint8_t state) {
     #else // DD with no PA2/3 so "default" is alt2
       {
         PORTMUX.TWIROUTEA = portmux | PORTMUX_TWI0_ALT2_gc;
-        return false; // on a DD14, hence without PA2, PA3, Wire.swap(0) and Wire.swap(1) are invalid, Wire.swap(2) and Wire.swap(3) are valid - but we tested for those already. Hence, if we're here,
+        return false; // on a DD14, hence without PA2, PA3, ThermiaWire.swap(0) and ThermiaWire.swap(1) are invalid, ThermiaWire.swap(2) and ThermiaWire.swap(3) are valid - but we tested for those already. Hence, if we're here,
       }
     #endif
   #elif defined(PORTMUX_TWISPIROUTEA) // megaAVR 0-series
@@ -355,7 +355,7 @@ bool TWI0_swap(uint8_t state) {
   #else /* tinyAVR 2-series with neither CTRLB nor TWIROUTEA because no alternate pins for TWI*/
     if (__builtin_constant_p(state)) {
       if (state != 0) {
-        badCall("This part does not support alternate TWI pins. If Wire.swap() is called at all, it must be passed 0 only.");
+        badCall("This part does not support alternate TWI pins. If ThermiaWire.swap() is called at all, it must be passed 0 only.");
         return false;
       } else {
         return true;
@@ -502,7 +502,7 @@ uint8_t TWI0_checkPinLevel(void) {
       return (VPORTB.IN & 0x03);
     #endif
   #else
-    #error "Only modern AVR parts are supported by this version of Wire: tinyAVR 0/1/2-series, megaAVR 0-series, AVR Dx-series or AVR Ex-series."
+    #error "Only modern AVR parts are supported by this version of ThermiaWire: tinyAVR 0/1/2-series, megaAVR 0-series, AVR Dx-series or AVR Ex-series."
     return 0;
   #endif
 }
@@ -611,7 +611,7 @@ bool TWI1_Pins(uint8_t sda_pin, uint8_t scl_pin) {
     if (__builtin_constant_p(sda_pin) && __builtin_constant_p(scl_pin)) {
       /* constant case - error if there's no swap and the swap attempt is known at compile time */
       if (sda_pin != PIN_WIRE1_SDA || scl_pin != PIN_WIRE1_SCL) {
-        badCall("This part does not support alternate Wire1 pins, if Wire1.pins() is called, it must be passed the default pins");
+        badCall("This part does not support alternate ThermiaWire1 pins, if ThermiaWire1.pins() is called, it must be passed the default pins");
         return false;
       } else {
         return true;

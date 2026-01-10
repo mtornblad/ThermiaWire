@@ -1,5 +1,5 @@
 /*
-  (originally found in) TwoWire.cpp - TWI/I2C library for Wiring & Arduino
+  (originally found in) ThermiaTwoThermiaWire.cpp - TWI/I2C library for Wiring & Arduino
   Copyright (c) 2006 Nicholas Zambetti.  All right reserved.
 
   This library is free software; you can redistribute it and/or
@@ -21,7 +21,7 @@
   Modified 2019-2021 by Spence Konde for megaTinyCore and DxCore.
   This version is part of megaTinyCore and DxCore; it is not expected
   to work with other hardware or cores without modifications.
-  Modified 2021-2022 by MX682X for the Wire library rewriting project
+  Modified 2021-2022 by MX682X for the ThermiaWire library rewriting project
 */
 
 #ifndef TWI_PINS_H

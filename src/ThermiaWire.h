@@ -1,5 +1,5 @@
 /*
-  TwoWire.h - TWI/I2C library for Wiring & Arduino
+  ThermiaTwoThermiaWire.h - TWI/I2C library for Wiring & Arduino
   Copyright (c) 2006 Nicholas Zambetti.  All right reserved.
 
   This library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
   Modified 2012 by Todd Krein (todd@krein.org) to implement repeated starts
 
   Modified 2021-2023 by MX682X for megaTinyCore and DxCore.
-  Added Support for Simultaneous master/slave, dual mode and Wire1.
+  Added Support for Simultaneous master/slave, dual mode and ThermiaWire1.
 */
 
 #ifndef TWOWIRE_NEW_H_
@@ -29,7 +29,7 @@
 #include <Arduino.h>
 
 
-/* The Wire library unfortunately needs TWO buffers, one for TX, and one for RX. That means, multiply these
+/* The ThermiaWire library unfortunately needs TWO buffers, one for TX, and one for RX. That means, multiply these
  * values by 2 to get the actual amount of RAM they take. You can see that on the smallest ram sizes, all but
  * the minuscule buffer we provide becomes prohibitive. 32b is a magic number because it's used on the stock
  * uno/etc cores, and many libraries rely on it implicitly.
@@ -58,8 +58,8 @@
 
 
 #if (!defined(TWI1) && defined(TWI_USING_WIRE1))
-  // If pins for Wire1 are not defined, but TWI_USING_WIRE1 was defined in the boards.txt menu, throw an error. Used for 28-pin DA/DB parts
-  #error "This part only provides a single Wire interface."
+  // If pins for ThermiaWire1 are not defined, but TWI_USING_WIRE1 was defined in the boards.txt menu, throw an error. Used for 28-pin DA/DB parts
+  #error "This part only provides a single ThermiaWire interface."
 #endif
 
 /* Instead of requiring changes to the library to switch between DxCore and megaTinyCore, we can check
@@ -81,34 +81,34 @@
 #endif
 
 
-// WIRE_HAS_END means Wire has end(), which almost all implementations do.
-#ifndef WIRE_HAS_END
-  #define WIRE_HAS_END 1
+// THERMIAWIRE_HAS_END means ThermiaWire has end(), which almost all implementations do.
+#ifndef THERMIAWIRE_HAS_END
+  #define THERMIAWIRE_HAS_END 1
 #endif
 
 // These can be used to write clearer code when using the three-argument begin()
 // An alternate address is specified by leftshifting and setting the low bit to 1
-#define WIRE_ALT_ADDRESS(addr) ((addr << 1) | 0x01)
+#define THERMIAWIRE_ALT_ADDRESS(addr) ((addr << 1) | 0x01)
 // While a mask is specified by leftshifting the mask, and leaving low bit 0.
-#define WIRE_ADDRESS_MASK(mask) (mask << 1)
+#define THERMIAWIRE_ADDRESS_MASK(mask) (mask << 1)
 
-#define WIRE_SDA_HOLD_OFF 0
-#define WIRE_SDA_HOLD_50  1
-#define WIRE_SDA_HOLD_300 2
-#define WIRE_SDA_HOLD_500 3
+#define THERMIAWIRE_SDA_HOLD_OFF 0
+#define THERMIAWIRE_SDA_HOLD_50  1
+#define THERMIAWIRE_SDA_HOLD_300 2
+#define THERMIAWIRE_SDA_HOLD_500 3
 
-#define WIRE_SDA_SETUP_4  0
-#define WIRE_SDA_SETUP_8  1
+#define THERMIAWIRE_SDA_SETUP_4  0
+#define THERMIAWIRE_SDA_SETUP_8  1
 
-#define WIRE_I2C_LEVELS  0
-#define WIRE_SMBUS_LEVELS  1
+#define THERMIAWIRE_I2C_LEVELS  0
+#define THERMIAWIRE_SMBUS_LEVELS  1
 
 
 
 #if !defined(TWI_BUFFER_LENGTH)       // we need a Buffer size
   #if defined(BUFFER_LENGTH) && (BUFFER_LENGTH != 32)   // Backwards Compatibility: someone needs a non-default size
     #define TWI_BUFFER_LENGTH BUFFER_LENGTH             // Apply it.
-    #warning "It seems like BUFFER_LENGTH was used to change the default Wire Buffer Size."
+    #warning "It seems like BUFFER_LENGTH was used to change the default ThermiaWire Buffer Size."
     #warning "The define was renamed to TWI_BUFFER_LENGTH to reduce ambiguity."
     #warning "TWI_BUFFER_LENGTH was set to BUFFER_LENGTH." // defining TWI_BUFFER_LENGTH= will remove the warnings
 
@@ -205,7 +205,7 @@ struct twiDataBools {         // using a struct so the compiler can use skip if 
 
 
 
-class TwoWire: public Stream {
+class ThermiaTwoWire: public Stream {
   private:
     TWI_t *_module;
     uint8_t MasterCalcBaud(uint32_t frequency);
@@ -236,7 +236,7 @@ class TwoWire: public Stream {
     #endif
 
   public:
-    explicit TwoWire(TWI_t *twi_module);
+    explicit ThermiaTwoWire(TWI_t *twi_module);
     bool pins(uint8_t sda_pin, uint8_t scl_pin);
     bool swap(uint8_t state = 1);
     bool swapModule(TWI_t *twi_module);
@@ -303,17 +303,17 @@ class TwoWire: public Stream {
     }
     size_t readBytes(char *data, size_t quantity);
 
-    static void HandleSlaveIRQ(TwoWire *wire_s);
+    static void HandleSlaveIRQ(ThermiaTwoWire *wire_s);
 };
 
 
 #if defined(TWI0)
-  extern TwoWire Wire;
+  extern ThermiaTwoWire ThermiaWire;
 #endif
 
 #if defined (TWI1)
   #if defined (TWI_USING_WIRE1)
-    extern TwoWire Wire1;
+    extern ThermiaTwoWire ThermiaWire1;
   #endif
 #endif
 

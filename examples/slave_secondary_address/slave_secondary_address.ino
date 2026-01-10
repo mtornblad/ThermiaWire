@@ -1,10 +1,10 @@
-/* Wire Slave Secondary Address
+/* ThermiaWire Slave Secondary Address
  * by MX682X
  *
- * Demonstrates use of the New Wire library
+ * Demonstrates use of the New ThermiaWire library
  * Receives data as an I2C/TWI slave device
- * Refer to the "Wire Two Masters Write" example (DA/DB 32+ pin)
- * or "Wire Master Multi Address Write" example (all other parts)
+ * Refer to the "ThermiaWire Two Masters Write" example (DA/DB 32+ pin)
+ * or "ThermiaWire Master Multi Address Write" example (all other parts)
  *
  * This example prints the address which triggered the receive function
  * and the data that was sent to the slave on the Serial Monitor
@@ -17,18 +17,18 @@
  * See the "Slave Address Mask" example for an example that handles this
  * more "properly" (and also is a bit more complex generally).
  *
- * To use this with the "Wire Two Master Write" example, you need
+ * To use this with the "ThermiaWire Two Master Write" example, you need
  * it connected to both sets of host pins.
  * e.g. for two AVR128DA48:
  *    SDA connected to PA2 and PF2 of master and PA2 of slave.
  *    SCL connected to PA3 and PF3 of master and PA2 of slave.
  *
- * The "Wire Master Multi-Address Write" only uses a single pair of I2C pins.
+ * The "ThermiaWire Master Multi-Address Write" only uses a single pair of I2C pins.
  *
  * Pullup resistors must be connected between both data lines and Vcc.
- * See the Wire library README.md for more information.
+ * See the ThermiaWire library README.md for more information.
  */
-#include <Wire.h>
+#include <ThermiaWire.h>
 
 char input[32];
 int8_t len = 0;
@@ -42,8 +42,8 @@ void setup() {
   // 2nd argument: listen to general broadcast or "general call" (address 0x00)
   // 3rd argument: bits 7-1: second address if bit 0 is set true
   //               or bit mask of an address if bit 0 is set false
-  Wire.begin(0x54, false, WIRE_ALT_ADDRESS(0x64));
-  Wire.onReceive(receiveDataWire);
+  ThermiaWire.begin(0x54, false, THERMIAWIRE_ALT_ADDRESS(0x64));
+  ThermiaWire.onReceive(receiveDataWire);
 
   // Initialize serial port - if you need to swap pins, remember to do so.
   // MySerial.swap(1);
@@ -59,18 +59,18 @@ void loop() {
 // function that executes whenever data is received from master
 // this function is registered as an event, see setup()
 void receiveDataWire(int16_t numBytes) {
-  uint8_t addr = Wire.getIncomingAddress();   // get the address that triggered this function
+  uint8_t addr = ThermiaWire.getIncomingAddress();   // get the address that triggered this function
   //                                          // the incoming address is leftshifted though
   if (addr == (0x54 << 1)) {                  // if the address was 0x54, do this
     MySerial.print("Addr 0x54: ");
     for (uint8_t i = 0; i < numBytes; i++) {
-      char c = Wire.read();
+      char c = ThermiaWire.read();
       MySerial.write(c);
     }
   } else if (addr == (0x64 << 1)) {           // if the address was 0x64, do that
     MySerial.print("Addr 0x64: ");
     for (uint8_t i = 0; i < numBytes; i++) {
-      char c = Wire.read();
+      char c = ThermiaWire.read();
       MySerial.write(c);
     }
   }

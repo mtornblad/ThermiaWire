@@ -1,5 +1,5 @@
 /*
-  TwoWire.cpp - TWI/I2C library for Wiring & Arduino
+  ThermiaTwoThermiaWire.cpp - TWI/I2C library for Wiring & Arduino
   Copyright (c) 2006 Nicholas Zambetti.  All right reserved.
 
   This library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@
   This version is part of megaTinyCore and DxCore; it is not expected
   to work with other hardware or cores without modifications.
   Modified extensively 2021-23 by MX682X for megaTinyCore and DxCore.
-  Added Support for Simultaneous host/client, dual mode and Wire1.
+  Added Support for Simultaneous host/client, dual mode and ThermiaWire1.
 */
 // *INDENT-OFF*   astyle wants this file to be completely unreadable with no indentation for the many preprocessor conditionals!
 extern "C" {
@@ -33,7 +33,7 @@ extern "C" {
 
 
 #include "Arduino.h"
-#include "Wire.h"
+#include "ThermiaWire.h"
 
 
 extern "C" {    // compiler was complaining when I put twi.h into the upper C include part
@@ -45,20 +45,20 @@ volatile uint8_t sleepStack = 0;
 void pauseDeepSleep(uint8_t moduelAddr);
 void restoreSleep(uint8_t moduelAddr);
 
-TwoWire* twi0_wire;
-TwoWire* twi1_wire;
+ThermiaTwoWire* twi0_wire;
+ThermiaTwoWire* twi1_wire;
 
 
 
 /**
- *@brief      TwoWire creates a Wire object
+ *@brief      ThermiaTwoWire creates a ThermiaWire object
  *
- *@param      TWI_t *module - the pointer to the TWI module that the Wire object is supposed to use
+ *@param      TWI_t *module - the pointer to the TWI module that the ThermiaWire object is supposed to use
  *
  *@return     constructor can't return anything
  */
 
-TwoWire::TwoWire(TWI_t *twi_module) {
+ThermiaTwoWire::ThermiaTwoWire(TWI_t *twi_module) {
   if (&TWI0 == twi_module) {
     twi0_wire = this;
   }
@@ -83,7 +83,7 @@ TwoWire::TwoWire(TWI_t *twi_module) {
  *@return     bool
  *@retval     true if change was successful
  */
-bool TwoWire::pins(uint8_t sda_pin, uint8_t scl_pin) {
+bool ThermiaTwoWire::pins(uint8_t sda_pin, uint8_t scl_pin) {
   if (__builtin_constant_p(sda_pin) && __builtin_constant_p(scl_pin)) {
     if (!(
       #if defined(PIN_WIRE_SDA)
@@ -109,9 +109,9 @@ bool TwoWire::pins(uint8_t sda_pin, uint8_t scl_pin) {
       #endif
         false)) { // SDA and SCL are always next to each other
       #if defined(TWI1)
-        badArg("Pins passed to Wire.pins() or Wire1.pins() known at compile time to be invalid");
+        badArg("Pins passed to ThermiaWire.pins() or ThermiaWire1.pins() known at compile time to be invalid");
       #else
-        badArg("Pins passed to Wire.pins() known at compile time to be invalid");
+        badArg("Pins passed to ThermiaWire.pins() known at compile time to be invalid");
       #endif
     }
   }
@@ -119,7 +119,7 @@ bool TwoWire::pins(uint8_t sda_pin, uint8_t scl_pin) {
    * This was for a time in twi_pins.c - but that prevented it from ever firing, because constant folding doesn't happen if it's in a different file
    * and hence a different compilation unit. This still will only catch the case where the pins are not a valid pin combination. The construction below, I think
    * is enough to render the optimizer unable to do the sort of things it needs to in order to do this.
-   * Using both Wire.pins() and Wire1.pins() within the same sketch may also be enough to defang the optimizer such that it can't check these.
+   * Using both ThermiaWire.pins() and ThermiaWire1.pins() within the same sketch may also be enough to defang the optimizer such that it can't check these.
    * I don't see a way around that, though... but this will at least catch the majority of cases. -SK 10/5/22.
    */
   #if defined(TWI1)
@@ -145,7 +145,7 @@ bool TwoWire::pins(uint8_t sda_pin, uint8_t scl_pin) {
  *@return     bool
  *@retval     true if change was successful
  */
-bool TwoWire::swap(uint8_t state) {
+bool ThermiaTwoWire::swap(uint8_t state) {
   if (__builtin_constant_p(state)) {
     #if defined(TWI1) // DA and DB have a second TwI, TWI1. Both have swap levels 0-2. Swap 1 and 2 of TWI1 and swap 1 of TWI0 are unavailable with under 48 pins.
       if (!(
@@ -193,7 +193,7 @@ bool TwoWire::swap(uint8_t state) {
         }
 
     #else
-      #error "This library (Wire.h) is for modern AVRs, and all parts announced or in production have a TWI0"
+      #error "This library (ThermiaWire.h) is for modern AVRs, and all parts announced or in production have a TWI0"
     #endif
   }
   #if defined(TWI1)
@@ -219,7 +219,7 @@ bool TwoWire::swap(uint8_t state) {
  *
  *@return     void
  */
-void TwoWire::usePullups(void) {
+void ThermiaTwoWire::usePullups(void) {
   #if defined(TWI1)
     if (&TWI0 == _module) {
       TWI0_usePullups();
@@ -233,7 +233,7 @@ void TwoWire::usePullups(void) {
 
 
 /**
- *@brief      swapModule changes the TWI module if only one Wire object is used
+ *@brief      swapModule changes the TWI module if only one ThermiaWire object is used
  *
  *            Works only if the TWI is disabled
  *
@@ -243,7 +243,7 @@ void TwoWire::usePullups(void) {
  *@return     bool
  *@retval     true if change was successful
  */
-bool TwoWire::swapModule(TWI_t *twi_module) {
+bool ThermiaTwoWire::swapModule(TWI_t *twi_module) {
   if (__builtin_constant_p(twi_module)) {
     if (twi_module == NULL) {
       badArg("Null Pointer passed");
@@ -252,7 +252,7 @@ bool TwoWire::swapModule(TWI_t *twi_module) {
   }
   #if defined(TWI1)
     #if defined(TWI_USING_WIRE1)
-      badCall("swapModule() can only be used if Wire1 is not used");
+      badCall("swapModule() can only be used if ThermiaWire1 is not used");
     #else
       if ((_bools._hostEnabled | _bools._clientEnabled) == 0) { // make sure nothing's enabled
         if (&TWI0 == twi_module) {
@@ -281,7 +281,7 @@ bool TwoWire::swapModule(TWI_t *twi_module) {
  *
  *@return     void
  */
-void TwoWire::begin(void) {
+void ThermiaTwoWire::begin(void) {
   #if defined(TWI_MANDS)                            // Check if the user wants to use Master AND Slave
     if (_bools._hostEnabled == 1) {          // Slave is allowed to be enabled, don't re-enable the host though
       return;
@@ -313,7 +313,7 @@ void TwoWire::begin(void) {
 
 
 /**
- *@brief      begin (w/ parameters) changes the TWI module if only one Wire object is used
+ *@brief      begin (w/ parameters) changes the TWI module if only one ThermiaWire object is used
  *
  *            Works only if the TWI is disabled
  *
@@ -326,7 +326,7 @@ void TwoWire::begin(void) {
  *
  *@return     void
  */
-void TwoWire::begin(uint8_t address, bool receive_broadcast, uint8_t second_address) {
+void ThermiaTwoWire::begin(uint8_t address, bool receive_broadcast, uint8_t second_address) {
   if (__builtin_constant_p(address)) {
     if (address > 0x7F) {     // Compile-time check if address is actually 7 bit long
       badArg("TWI addresses must be supplied in 7-bit format. The read/write bit is handled by the library");
@@ -375,7 +375,7 @@ void TwoWire::begin(uint8_t address, bool receive_broadcast, uint8_t second_addr
  *@retval       0 if no error occurred
  *@retval       1 if a problem occurred
  */
-uint8_t TwoWire::setClock(uint32_t clock) {
+uint8_t ThermiaTwoWire::setClock(uint32_t clock) {
   TWI_t* module = _module;
   if (__builtin_constant_p(clock)) {
     if ((clock < 1000) || (clock > 15000000)) {
@@ -419,7 +419,7 @@ uint8_t TwoWire::setClock(uint32_t clock) {
  *@retval             the desired baud value
  */
 #define TWI_BAUD(freq, t_rise) ((F_CPU / freq) / 2) - (5 + (((F_CPU / 1000000) * t_rise) / 2000))
-uint8_t TwoWire::MasterCalcBaud(uint32_t frequency) {
+uint8_t ThermiaTwoWire::MasterCalcBaud(uint32_t frequency) {
   int16_t baud;
 
   #if (F_CPU == 20000000) || (F_CPU == 10000000)
@@ -465,7 +465,7 @@ uint8_t TwoWire::MasterCalcBaud(uint32_t frequency) {
  *
  *@return     void
  */
-void TwoWire::end(void) {
+void ThermiaTwoWire::end(void) {
   endMaster();
   endSlave();
 }
@@ -478,7 +478,7 @@ void TwoWire::end(void) {
  *
  *@return     void
  */
-void TwoWire::endMaster(void) {
+void ThermiaTwoWire::endMaster(void) {
   if (_bools._hostEnabled) {
     _module->MCTRLA = 0x00;
     _module->MBAUD  = 0x00;
@@ -495,7 +495,7 @@ void TwoWire::endMaster(void) {
  *
  *@return     void
  */
-void TwoWire::endSlave(void) {
+void ThermiaTwoWire::endSlave(void) {
   if (_bools._clientEnabled) {
     _module->SADDR       = 0x00;
     _module->SCTRLA      = 0x00;
@@ -518,10 +518,10 @@ void TwoWire::endSlave(void) {
  *            Can also be set independently if dual mode used.
  *            longsetup: The setup times are normally 4 system clocks, however this can be doubled for disagreeable devices and/or adverse bus conditions
  *            Four options are available for the SDA hold times. sda_hold_dual handles the dual pins. This is used for SMBus 2.0 compatibility.
- *              WIRE_SDA_HOLD_OFF 0 - hold time off (default)
- *              WIRE_SDA_HOLD_50  1 - short hold time
- *              WIRE_SDA_HOLD_300 2 - meets SMBus 2.0 spec in typical cases
- *              WIRE_SDA_HOLD_500 3 - meets SMBus 2.0 across all corner cases
+ *              THERMIAWIRE_SDA_HOLD_OFF 0 - hold time off (default)
+ *              THERMIAWIRE_SDA_HOLD_50  1 - short hold time
+ *              THERMIAWIRE_SDA_HOLD_300 2 - meets SMBus 2.0 spec in typical cases
+ *              THERMIAWIRE_SDA_HOLD_500 3 - meets SMBus 2.0 across all corner cases
  *
  *            Returns a value between 0 and 7. 0 indicates all is well.
  *            it is otherwise bitwis combination of three error conditions (the first two of which we will stop compilation if they are constants and wrong)
@@ -536,7 +536,7 @@ void TwoWire::endSlave(void) {
  *            0x04 = sda_hold_dual ignored because dual mode not enabled.
  */
 
-uint8_t TwoWire::specialConfig( __attribute__ ((unused)) bool smbuslvl, __attribute__ ((unused)) bool longsetup, __attribute__ ((unused)) uint8_t sda_hold, __attribute__ ((unused)) bool smbuslvl_dual, __attribute__ ((unused)) uint8_t sda_hold_dual) {
+uint8_t ThermiaTwoWire::specialConfig( __attribute__ ((unused)) bool smbuslvl, __attribute__ ((unused)) bool longsetup, __attribute__ ((unused)) uint8_t sda_hold, __attribute__ ((unused)) bool smbuslvl_dual, __attribute__ ((unused)) uint8_t sda_hold_dual) {
   uint8_t ret = 0;
   #if !defined(TWI_INPUTLVL_bm) // if there's no input level option, we want to notify the user with an error so they don't think they have a feature they don't
     if (__builtin_constant_p(smbuslvl))  { //but they could be passign a zero, which is legal. See if it's constant...
@@ -633,7 +633,7 @@ uint8_t TwoWire::specialConfig( __attribute__ ((unused)) bool smbuslvl, __attrib
  */
 
 
-uint8_t TwoWire::masterReceive(auto *length, uint8_t *buffer, uint8_t addr, uint8_t sendStop) {
+uint8_t ThermiaTwoWire::masterReceive(auto *length, uint8_t *buffer, uint8_t addr, uint8_t sendStop) {
   TWI_t *module = _module;
   __asm__ __volatile__("\n\t" : "+z"(module));
 
@@ -727,7 +727,7 @@ uint8_t TwoWire::masterReceive(auto *length, uint8_t *buffer, uint8_t addr, uint
  *@return     uint8_t/uint16_t
  *@retval     amount of bytes that were actually read. If 0, no read took place due to a bus error.
  */
-twi_buf_index_t TwoWire::requestFrom(uint8_t  address,  twi_buf_index_t quantity,  uint8_t sendStop) {
+twi_buf_index_t ThermiaTwoWire::requestFrom(uint8_t  address,  twi_buf_index_t quantity,  uint8_t sendStop) {
   if (__builtin_constant_p(quantity)) {
     if (quantity > TWI_BUFFER_LENGTH) {
       badArg("requestFrom requests more bytes then there is Buffer space");
@@ -755,7 +755,7 @@ twi_buf_index_t TwoWire::requestFrom(uint8_t  address,  twi_buf_index_t quantity
 
 
 /**
- *@brief      beginTransmission prepares the Wire object for a host WRITE.
+ *@brief      beginTransmission prepares the ThermiaWire object for a host WRITE.
  *
  *            This function only saves the client address in the structure, it does
  *            not perform any transmissions.
@@ -766,7 +766,7 @@ twi_buf_index_t TwoWire::requestFrom(uint8_t  address,  twi_buf_index_t quantity
  *
  *@return     void
  */
-void TwoWire::beginTransmission(uint8_t address) {
+void ThermiaTwoWire::beginTransmission(uint8_t address) {
   if (__builtin_constant_p(address) > 0x7F) {     // Compile-time check if address is actually 7 bit long
     badArg("Supplied address seems to be 8 bit. Only 7-bit-addresses are supported");
     return;
@@ -807,7 +807,7 @@ void TwoWire::beginTransmission(uint8_t address) {
  *           20 for likely a slave holding the clock low
  *          255 (-1) for TWI not initialized (begin not called) or bus somehow in "unknown" state.
  */
-uint8_t TwoWire::endTransmission(bool sendStop) {
+uint8_t ThermiaTwoWire::endTransmission(bool sendStop) {
   // transmit (blocking)
   return masterTransmit(&_bytesToReadWrite, _hostBuffer, _clientAddress, sendStop);
 }
@@ -829,7 +829,7 @@ uint8_t TwoWire::endTransmission(bool sendStop) {
  *@return     uint8_t
  *@retval     errors (see endTransmission)
  */
-uint8_t TwoWire::masterTransmit(auto *length, uint8_t *buffer, uint8_t addr, uint8_t sendStop) {
+uint8_t ThermiaTwoWire::masterTransmit(auto *length, uint8_t *buffer, uint8_t addr, uint8_t sendStop) {
   TWI_t* module = _module;
   __asm__ __volatile__("\n\t" : "+z"(module));
 
@@ -927,7 +927,7 @@ uint8_t TwoWire::masterTransmit(auto *length, uint8_t *buffer, uint8_t addr, uin
  *@return     uint8_t
  *@retval     1 if successful, 0 if the buffer is full
  */
-size_t TwoWire::write(uint8_t data) {
+size_t ThermiaTwoWire::write(uint8_t data) {
   uint8_t* txBuffer;
   twi_buf_index_t *txHead;
   #if defined(TWI_MANDS)                   // Add following if host and client are split
@@ -965,10 +965,10 @@ size_t TwoWire::write(uint8_t data) {
  *@return     uint8_t
  *@retval     amount of bytes copied
  */
-size_t TwoWire::write(const uint8_t *data, size_t quantity) {
+size_t ThermiaTwoWire::write(const uint8_t *data, size_t quantity) {
   twi_buf_index_t i = 0;
   for (; i < quantity; i++) {
-    if (TwoWire::write(*(data++)) == 0)
+    if (ThermiaTwoWire::write(*(data++)) == 0)
       break;   // break if buffer full
   }
 
@@ -989,7 +989,7 @@ size_t TwoWire::write(const uint8_t *data, size_t quantity) {
  *@return     int
  *@retval     amount of bytes available to read from the host buffer
  */
-int TwoWire::available(void) {
+int ThermiaTwoWire::available(void) {
   #if defined(TWI_MANDS)                          // Add following if host and client are split
     if (_bools._toggleStreamFn == 0x01) {
       return (_bytesToReadWriteS - _bytesReadWrittenS);
@@ -1014,7 +1014,7 @@ int TwoWire::available(void) {
  *@return     int
  *@retval     byte in the buffer or -1 if buffer is empty
  */
-int TwoWire::read(void) {
+int ThermiaTwoWire::read(void) {
   uint8_t *rxBuffer;
   twi_buf_index_t *rxHead, *rxTail;
   #if defined(TWI_MANDS)                         // Add following if host and client are split
@@ -1057,7 +1057,7 @@ int TwoWire::read(void) {
  *@return     size_t
  *@retval     actually read bytes.
  */
-size_t TwoWire::readBytes(char* data, size_t quantity) {
+size_t ThermiaTwoWire::readBytes(char* data, size_t quantity) {
   twi_buf_index_t i = 0;
   for (; i < quantity; i++) {
     int16_t c = read();
@@ -1081,7 +1081,7 @@ size_t TwoWire::readBytes(char* data, size_t quantity) {
  *@return     int
  *@retval     byte in the buffer or -1 if buffer is empty
  */
-int TwoWire::peek(void) {
+int ThermiaTwoWire::peek(void) {
   uint8_t *rxBuffer;
   twi_buf_index_t *rxHead, *rxTail;
   #if defined(TWI_MANDS)                         // Add following if host and client are split
@@ -1112,7 +1112,7 @@ int TwoWire::peek(void) {
  *
  *@return     void
  */
-void TwoWire::flush(void) {
+void ThermiaTwoWire::flush(void) {
   /* Turn off and on TWI module */
   TWI_t* module = _module;
   #if defined(ERRATA_TWI_FLUSH)
@@ -1141,7 +1141,7 @@ void TwoWire::flush(void) {
  *@return     uint8_t
  *@retval     left-shifted I2C address with the write/read bit
  */
-uint8_t TwoWire::getIncomingAddress(void) {
+uint8_t ThermiaTwoWire::getIncomingAddress(void) {
   #if defined(TWI_MANDS)                         // Alias handler
     return _incomingAddress;
   #else
@@ -1163,7 +1163,7 @@ uint8_t TwoWire::getIncomingAddress(void) {
  *              the last time this was called.
  */
 
-twi_buf_index_t TwoWire::getBytesRead() {
+twi_buf_index_t ThermiaTwoWire::getBytesRead() {
   twi_buf_index_t num = _bytesTransmittedS;
   _bytesTransmittedS = 0;
   return num;
@@ -1185,7 +1185,7 @@ twi_buf_index_t TwoWire::getBytesRead() {
  *              onRequest handler is called at the start of a read only.
  */
 
-uint8_t TwoWire::slaveTransactionOpen() {
+uint8_t ThermiaTwoWire::slaveTransactionOpen() {
   uint8_t status = _module->SSTATUS;
   if (!(status & TWI_AP_bm)) return 0;  // If AP bit is cleared, last match was a stop condition -> not in transaction.
   if (status & TWI_DIR_bm) return 2;    // DIR bit will be 1 if last address match was for read
@@ -1198,14 +1198,14 @@ uint8_t TwoWire::slaveTransactionOpen() {
  *
  *            useful when you want to separate multiple TWI buses.
  *            Only available on the chips with a bigger pin count. See data sheet.
- *            To disable dualmode, please use Wire.endSlave() (in MANDS case) or Wire.end();
+ *            To disable dualmode, please use ThermiaWire.endSlave() (in MANDS case) or ThermiaWire.end();
  *
  *@param      bool fmp_enable - set true if the TWI module has to expect a high
  *              frequency (>400kHz) on the salve pins
  *
  *@return     void
  */
-void TwoWire::enableDualMode(bool fmp_enable) {
+void ThermiaTwoWire::enableDualMode(bool fmp_enable) {
   #if defined(TWI_DUALCTRL)
     _module->DUALCTRL = ((fmp_enable << TWI_FMPEN_bp) | TWI_ENABLE_bm);
   #else
@@ -1227,7 +1227,7 @@ void TwoWire::enableDualMode(bool fmp_enable) {
  *
  *@return     uint8_t - SDA level is represented with bit 0, SCL with bit 1. Bus ready with 0x03
  */
-uint8_t TwoWire::checkPinLevels(void) {
+uint8_t ThermiaTwoWire::checkPinLevels(void) {
   #if defined(TWI1)
     if (&TWI0 == _module)  {
       return TWI0_checkPinLevel();
@@ -1255,7 +1255,7 @@ uint8_t TwoWire::checkPinLevels(void) {
  *
  *@return     void
  */
-void TwoWire::selectSlaveBuffer(void) {
+void ThermiaTwoWire::selectSlaveBuffer(void) {
   #if defined(TWI_MANDS)
     _bools._toggleStreamFn = 0x01;
   #else
@@ -1277,7 +1277,7 @@ void TwoWire::selectSlaveBuffer(void) {
  *
  *@return     void
  */
-void TwoWire::deselectSlaveBuffer(void) {
+void ThermiaTwoWire::deselectSlaveBuffer(void) {
   #if defined(TWI_MANDS)
     _bools._toggleStreamFn = 0x00;
   #else
@@ -1289,7 +1289,7 @@ void TwoWire::deselectSlaveBuffer(void) {
 
 
 
-void TwoWire::HandleSlaveIRQ(TwoWire *wire_s) {
+void ThermiaTwoWire::HandleSlaveIRQ(ThermiaTwoWire *wire_s) {
   if (wire_s == NULL) {
     return;
   }
@@ -1399,7 +1399,7 @@ void TwoWire::HandleSlaveIRQ(TwoWire *wire_s) {
  *
  *@return     void
  */
-void TwoWire::onReceive(void (*function)(int)) {
+void ThermiaTwoWire::onReceive(void (*function)(int)) {
   user_onReceive = function;
 }
 
@@ -1413,7 +1413,7 @@ void TwoWire::onReceive(void (*function)(int)) {
  *
  *@return     void
  */
-void TwoWire::onRequest(void (*function)(void)) {
+void ThermiaTwoWire::onRequest(void (*function)(void)) {
   user_onRequest = function;
 }
 
@@ -1422,7 +1422,7 @@ void TwoWire::onRequest(void (*function)(void)) {
  *@brief      TWI0 Slave Interrupt vector
  */
 ISR(TWI0_TWIS_vect) {
-  TwoWire::HandleSlaveIRQ(twi0_wire);
+  ThermiaTwoWire::HandleSlaveIRQ(twi0_wire);
 }
 
 
@@ -1431,7 +1431,7 @@ ISR(TWI0_TWIS_vect) {
  */
 #if defined(TWI1)
   ISR(TWI1_TWIS_vect) {
-    TwoWire::HandleSlaveIRQ(twi1_wire);
+    ThermiaTwoWire::HandleSlaveIRQ(twi1_wire);
   }
 #endif
 
@@ -1445,7 +1445,7 @@ ISR(TWI0_TWIS_vect) {
  *              e.g. when TWI0 - START, TWI1 - START, TWI0 - STOP, TWI1 - STOP
  *
  *@param      uint8_t module_lower_Addr - lower byte of the TWI Module address
-                    (used only with two Wire objects)
+                    (used only with two ThermiaWire objects)
  *
  *@return     void
  */
@@ -1498,16 +1498,16 @@ void restoreSleep(uint8_t module_lower_Addr) {
 
 
 /**
- *  Wire object constructors with the default TWI modules.
+ *  ThermiaWire object constructors with the default TWI modules.
  *  If there is absolutely no way to swap the pins physically,
  *  here is the best way to do so in software.
  */
 #if defined(TWI0)
-  TwoWire Wire(&TWI0);
+  ThermiaTwoWire ThermiaWire(&TWI0);
 #endif
 
 #if defined(TWI1)
   #if defined(TWI_USING_WIRE1)
-    TwoWire Wire1(&TWI1);
+    ThermiaTwoWire ThermiaWire1(&TWI1);
   #endif
 #endif
