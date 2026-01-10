@@ -283,6 +283,9 @@ class ThermiaTwoWire: public Stream {
     void onReceive(void (*)(int));
     void onRequest(void (*)(void));
 
+    void nackFE(bool enabled);
+
+    
     inline size_t write(unsigned long n) {
       return      write((uint8_t)     n);
     }

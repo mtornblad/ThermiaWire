@@ -41,6 +41,7 @@ extern "C" {    // compiler was complaining when I put twi.h into the upper C in
 }
 
 volatile uint8_t sleepStack = 0;
+static bool nackFE = false;
 
 void pauseDeepSleep(uint8_t moduelAddr);
 void restoreSleep(uint8_t moduelAddr);
@@ -1371,7 +1372,9 @@ void ThermiaTwoWire::HandleSlaveIRQ(ThermiaTwoWire *wire_s) {
       }
     } else {                                  // Master is writing
       uint8_t payload = wire_s->_module->SDATA;     // reading SDATA will clear the DATA IRQ flag
-      if ((*head) < TWI_BUFFER_LENGTH) {            // make sure that we don't have a buffer overflow in case Master ignores NACK
+      if ((payload == 0xFE) && ((*head) == 0) && nackFE) {  //MATTIAS MOD
+          action = TWI_ACKACT_bm | TWI_SCMD_COMPTRANS_gc;  // NACK + "Wait for any Start (S/Sr) condition"
+      } else if ((*head) < TWI_BUFFER_LENGTH) {            // make sure that we don't have a buffer overflow in case Master ignores NACK
         buffer[(*head)] = payload;                  // save data
         (*head)++;                                  // Advance Head
         if ((*head) == TWI_BUFFER_LENGTH) {         // if buffer is not yet full
@@ -1416,6 +1419,19 @@ void ThermiaTwoWire::onReceive(void (*function)(int)) {
 void ThermiaTwoWire::onRequest(void (*function)(void)) {
   user_onRequest = function;
 }
+
+
+/**
+ *@brief      nackFE adsfkljasdkf
+ *
+ *@param      bool (*function)(bool) - a bool to enable or disable nack when FE is received
+ *
+ *@return     void
+ */
+void ThermiaTwoWire::nackFE(bool enabled) {
+  TWI_NackFE(enabled);
+}
+
 
 
 /**
@@ -1494,7 +1510,6 @@ void restoreSleep(uint8_t module_lower_Addr) {
     sleepStack = 0;
   #endif
 }
-
 
 
 /**
