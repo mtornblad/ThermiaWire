@@ -1428,8 +1428,8 @@ void ThermiaTwoWire::onRequest(void (*function)(void)) {
  *
  *@return     void
  */
-void ThermiaTwoWire::nackFE(bool enabled) {
-  TWI_NackFE(enabled);
+void ThermiaTwoWire::thermiaNack(bool enabled) {
+  nackFE = enabled;
 }
 
 
