@@ -41,7 +41,8 @@ extern "C" {    // compiler was complaining when I put twi.h into the upper C in
 }
 
 volatile uint8_t sleepStack = 0;
-static bool nackFE = false;
+// Shared between thermiaNack() in application code and the TWI slave ISR.
+static volatile bool nackFE = false;
 
 void pauseDeepSleep(uint8_t moduelAddr);
 void restoreSleep(uint8_t moduelAddr);

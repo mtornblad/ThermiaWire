@@ -1,4 +1,25 @@
 # ThermiaWire (TWI/I2C)
+
+## Thermia-specific fork
+
+This fork adds `ThermiaWire.thermiaNack(bool enabled)` for the Thermia 901510
+accessory protocol. With the flag enabled, the slave NACKs `0xFE` when it is the
+first data byte of a master write; other data is handled by the original driver.
+Disable the flag only when the application has a request ready for the pump.
+The flag is shared with the slave ISR and is therefore declared `volatile`.
+
+This does not make ThermiaWire an ESP32 library: it uses the AVR TWI peripheral.
+The application callbacks run in interrupt context. Keep them short and move
+serial logging, Modbus operations and allocation to the main loop. For the
+AVR64DD28 bridge and its ESPHome setup see
+[ThermiaModBus](https://github.com/mtornblad/ThermiaModBus).
+
+The NACK flag is currently global to the library, not per TWI module. Use a
+single Thermia slave instance. A zero-length receive callback may occur after a
+NACKed query and must not be interpreted as a register response.
+
+The documentation below describes the underlying DxCore/megaTinyCore Wire API.
+
 All of these parts have at least one I2C/TWI module, and ThermiaWire.h provides the usual API - and then some.
 
 ## NEW in megaTinyCore 2.6.2/DxCore 1.5.0 - sleep guard for TWI
